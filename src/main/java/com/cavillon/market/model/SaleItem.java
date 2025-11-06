@@ -35,6 +35,11 @@ public class SaleItem {
     @Column(precision = 10, scale = 2, nullable = false)
     private BigDecimal unitPrice;
 
+    @PrePersist
+    private void prePersist() {
+        this.unitPrice = product.getSellPrice();
+    }
+
     public BigDecimal getSubtotal () {
         return unitPrice.multiply(BigDecimal.valueOf(quantity));
     }

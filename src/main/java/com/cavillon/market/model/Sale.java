@@ -8,7 +8,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 @Data
@@ -23,7 +25,9 @@ public class Sale {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    private LocalDateTime date;
+    private LocalDate date;
+
+    private LocalTime time;
 
     @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SaleItem> items;
@@ -31,16 +35,21 @@ public class Sale {
     @Column(precision = 10, scale = 2)
     private BigDecimal total;
 
+    @Column(precision = 10, scale = 2)
+    private BigDecimal dollarValue;
+
     @PrePersist
     @PreUpdate
-    private void calculateTotal() {
+    private void prePersist() {
         if (items != null && !items.isEmpty()) {
             this.total = items.stream()
-                    .map(SaleItem::getSubtotal)
+                    .map(item -> item.getSubtotal().multiply(this.dollarValue))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
         } else {
             this.total = BigDecimal.ZERO;
         }
+        this.date = LocalDate.now();
+        this.time = LocalTime.now();
     }
 
 }
